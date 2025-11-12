@@ -75,9 +75,22 @@ with st.sidebar:
     )
 
     st.divider()
-    st.caption(
-        "模式：" + ("模擬（無金鑰）" if llm.use_mock else "真實（OpenAI 相容 API）")
-    )
+    # 模式顯示強化：依 llm 狀態判斷來源
+    if llm.use_mock:
+        mode_label = "模擬（無金鑰且無本地端點）"
+    else:
+        # 根據 base_url 判斷是否為本地模型
+        base_lower = llm.base_url.lower()
+        if base_lower.startswith("http://localhost") or base_lower.startswith("http://127.0.0.1"):
+            if llm.local_provider == "ollama":
+                mode_label = f"本地模型（LangChain ChatOllama: {llm.local_model or llm.model}）"
+            elif llm.local_provider == "lmstudio":
+                mode_label = f"本地模型（LangChain LM Studio: {llm.local_model or llm.model}）"
+            else:
+                mode_label = f"本地端點（LangChain BaseURL: {llm.model})"
+        else:
+            mode_label = f"雲端 API（LangChain: {llm.model})"
+    st.caption("模式：" + mode_label)
     st.caption("提示：本系統僅供情緒支持與一般性建議，不提供醫療/法律專業意見。")
 
 
