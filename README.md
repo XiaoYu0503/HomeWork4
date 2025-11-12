@@ -8,9 +8,10 @@
 - 搞笑安慰 🤡：幽默、輕鬆解壓、機智轉念。
 
 支援：
+- LangChain 封裝：自動選擇 ChatOpenAI 或 ChatOllama。
 - OpenAI 相容 API（預設 OpenAI 官方）。
 - 無金鑰時「本地模型 fallback」或「模擬模式」：
-	- 若偵測到本地端點（Ollama/LM Studio 的 OpenAI 相容 API），自動使用本地模型。
+	- 若偵測到本地端點（Ollama/LM Studio 的 OpenAI 相容 API），自動使用本地模型（透過 LangChain）。
 	- 若無本地端點，則使用輕量模擬回覆，方便先體驗 UI 與流程。
 
 ---
@@ -91,7 +92,7 @@ OPENAI_MODEL = "gpt-4o-mini"                  # 可省略
 
 ---
 
-## 本地模型（無金鑰）自動 fallback
+## 本地模型（無金鑰）自動 fallback（透過 LangChain）
 
 若沒有設定 OPENAI_API_KEY，系統會嘗試使用本地的 OpenAI 相容端點：
 
@@ -119,7 +120,11 @@ OPENAI_MODEL = "gpt-4o-mini"                  # 可省略
 		 LOCAL_LLM_MODEL = "gpt-3.5-turbo"  # LM Studio 會映射到你選擇的本地模型
 		 ```
 
-注意：若同時沒有金鑰與本地端點，系統才會退回到簡易的模擬回覆。
+LangChain 會：
+1. 有 OPENAI_API_KEY → 用 ChatOpenAI。
+2. 沒金鑰但有 LOCAL_LLM_PROVIDER=ollama → 用 ChatOllama。
+3. 沒金鑰且 base_url 指向本地 → 嘗試 ChatOpenAI（dummy key）。
+4. 以上都沒有 → 回到模擬回覆。\n\n注意：若同時沒有金鑰與本地端點，系統才會退回到簡易的模擬回覆。
 
 ---
 

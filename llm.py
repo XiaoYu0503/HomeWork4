@@ -5,11 +5,16 @@ import re
 import time
 from typing import Dict, Generator, Iterable, List, Optional
 
-try:
-    # OpenAI SDK v1.x
-    from openai import OpenAI
+try:  # LangChain imports
+    from langchain_openai import ChatOpenAI
+    from langchain_community.chat_models import ChatOllama
+    from langchain.schema import AIMessage, HumanMessage, SystemMessage
 except Exception:  # pragma: no cover
-    OpenAI = None  # type: ignore
+    ChatOpenAI = None  # type: ignore
+    ChatOllama = None  # type: ignore
+    AIMessage = None  # type: ignore
+    HumanMessage = None  # type: ignore
+    SystemMessage = None  # type: ignore
 
 
 SAFEGUARD_PATTERNS = [
@@ -40,43 +45,59 @@ def _get_env(name: str, default: Optional[str] = None) -> Optional[str]:
 
 class LLM:
     def __init__(self):
-        # 讀取基本設定
         api_key = _get_env("OPENAI_API_KEY")
         base_url = _get_env("OPENAI_BASE_URL") or "https://api.openai.com/v1"
         model = _get_env("OPENAI_MODEL") or "gpt-4o-mini"
         temperature = float(_get_env("OPENAI_TEMPERATURE", "0.7") or 0.7)
-
-        # 本地 LLM 自動 fallback
         local_provider = (_get_env("LOCAL_LLM_PROVIDER") or "").lower().strip()
-        local_model = _get_env("LOCAL_LLM_MODEL")
+        local_model = _get_env("LOCAL_LLM_MODEL") or ""
 
         def is_local(u: str) -> bool:
             u = (u or "").lower()
             return u.startswith("http://localhost") or u.startswith("http://127.0.0.1")
 
-        if not api_key:
-            # 明確指定使用本地供應者
-            if local_provider == "ollama":
-                base_url = "http://localhost:11434/v1"
-                api_key = "ollama"  # 本地端通常不檢查金鑰
-                model = local_model or _get_env("OPENAI_MODEL") or "llama3.1:8b-instruct"
-            elif local_provider == "lmstudio":
-                base_url = "http://localhost:1234/v1"
-                api_key = "lm-studio"
-                model = local_model or _get_env("OPENAI_MODEL") or "gpt-3.5-turbo"
-            # 或者使用者自己把 OPENAI_BASE_URL 指到本地端
-            elif is_local(base_url):
-                api_key = "sk-local"
-
         self.api_key = api_key
         self.base_url = base_url
         self.model = model
         self.temperature = temperature
+        self.local_provider = local_provider
+        self.local_model = local_model
 
-        self.use_mock = (not bool(self.api_key)) or (OpenAI is None)
-        self._client = None
-        if not self.use_mock and OpenAI is not None:
-            self._client = OpenAI(api_key=self.api_key, base_url=self.base_url)
+        self._chat = None
+        self.use_mock = False
+
+        if ChatOpenAI is None:  # LangChain 未安裝
+            self.use_mock = True
+        else:
+            # 優先本地 Ollama / LM Studio
+            if not api_key and (local_provider == "ollama" or local_provider == "lmstudio" or is_local(base_url)):
+                # Ollama
+                if local_provider == "ollama" or base_url.startswith("http://localhost:11434"):
+                    if ChatOllama is not None:
+                        self._chat = ChatOllama(model=local_model or "llama3.1:8b-instruct", temperature=temperature)
+                    else:
+                        self.use_mock = True
+                # LM Studio: 仍使用 ChatOpenAI 只要其端點相容
+                elif local_provider == "lmstudio" or base_url.startswith("http://localhost:1234"):
+                    self._chat = ChatOpenAI(
+                        api_key="sk-local",  # dummy
+                        base_url="http://localhost:1234/v1",
+                        model=local_model or model,
+                        temperature=temperature,
+                    )
+                else:
+                    self.use_mock = True
+            else:
+                if not api_key:
+                    self.use_mock = True
+                else:
+                    # 雲端 / 相容服務
+                    self._chat = ChatOpenAI(
+                        api_key=api_key,
+                        base_url=base_url,
+                        model=model,
+                        temperature=temperature,
+                    )
 
     def chat_stream(
         self,
@@ -100,22 +121,30 @@ class LLM:
 
         conversation = [{"role": "system", "content": system_prompt}] + messages
 
-        if self.use_mock:
+        if self.use_mock or self._chat is None or AIMessage is None:
             for chunk in _mock_generate(conversation, persona_key):
                 yield chunk
             return
 
-        assert self._client is not None
-        stream = self._client.chat.completions.create(
-            model=self.model,
-            messages=conversation,
-            temperature=self.temperature,
-            max_tokens=max_tokens,
-            stream=True,
-        )
-        for ev in stream:
-            if ev.choices and ev.choices[0].delta and ev.choices[0].delta.content:
-                yield ev.choices[0].delta.content
+        # LangChain 轉換訊息
+        lc_messages = []
+        for m in conversation:
+            if m["role"] == "system":
+                lc_messages.append(SystemMessage(content=m["content"]))
+            elif m["role"] == "user":
+                lc_messages.append(HumanMessage(content=m["content"]))
+            else:
+                lc_messages.append(AIMessage(content=m["content"]))
+
+        # LangChain 串流：目前 ChatOpenAI/ChatOllama 支援 stream() 回傳生成塊
+        try:
+            for chunk in self._chat.stream(lc_messages):  # type: ignore
+                if hasattr(chunk, "content") and chunk.content:
+                    yield chunk.content
+        except Exception as e:  # 失敗 fallback 模擬
+            err = f"[LangChain 呼叫失敗，改用模擬] {e}"
+            for part in [err]:
+                yield part
 
 
 # -----------------
