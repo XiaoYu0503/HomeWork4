@@ -40,11 +40,40 @@ def _get_env(name: str, default: Optional[str] = None) -> Optional[str]:
 
 class LLM:
     def __init__(self):
-        self.api_key = _get_env("OPENAI_API_KEY")
-        self.base_url = _get_env("OPENAI_BASE_URL") or "https://api.openai.com/v1"
-        self.model = _get_env("OPENAI_MODEL") or "gpt-4o-mini"
-        self.temperature = float(_get_env("OPENAI_TEMPERATURE", "0.7") or 0.7)
-        self.use_mock = not bool(self.api_key) or OpenAI is None
+        # 讀取基本設定
+        api_key = _get_env("OPENAI_API_KEY")
+        base_url = _get_env("OPENAI_BASE_URL") or "https://api.openai.com/v1"
+        model = _get_env("OPENAI_MODEL") or "gpt-4o-mini"
+        temperature = float(_get_env("OPENAI_TEMPERATURE", "0.7") or 0.7)
+
+        # 本地 LLM 自動 fallback
+        local_provider = (_get_env("LOCAL_LLM_PROVIDER") or "").lower().strip()
+        local_model = _get_env("LOCAL_LLM_MODEL")
+
+        def is_local(u: str) -> bool:
+            u = (u or "").lower()
+            return u.startswith("http://localhost") or u.startswith("http://127.0.0.1")
+
+        if not api_key:
+            # 明確指定使用本地供應者
+            if local_provider == "ollama":
+                base_url = "http://localhost:11434/v1"
+                api_key = "ollama"  # 本地端通常不檢查金鑰
+                model = local_model or _get_env("OPENAI_MODEL") or "llama3.1:8b-instruct"
+            elif local_provider == "lmstudio":
+                base_url = "http://localhost:1234/v1"
+                api_key = "lm-studio"
+                model = local_model or _get_env("OPENAI_MODEL") or "gpt-3.5-turbo"
+            # 或者使用者自己把 OPENAI_BASE_URL 指到本地端
+            elif is_local(base_url):
+                api_key = "sk-local"
+
+        self.api_key = api_key
+        self.base_url = base_url
+        self.model = model
+        self.temperature = temperature
+
+        self.use_mock = (not bool(self.api_key)) or (OpenAI is None)
         self._client = None
         if not self.use_mock and OpenAI is not None:
             self._client = OpenAI(api_key=self.api_key, base_url=self.base_url)
