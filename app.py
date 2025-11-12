@@ -91,6 +91,17 @@ with st.sidebar:
         else:
             mode_label = f"雲端 API（LangChain: {llm.model})"
     st.caption("模式：" + mode_label)
+
+    with st.expander("診斷資訊 (Debug)"):
+        info = {
+            "engine": llm.engine_label() if hasattr(llm, "engine_label") else ("Mock" if llm.use_mock else "Unknown"),
+            "base_url": getattr(llm, "base_url", None),
+            "model": getattr(llm, "local_model", None) or getattr(llm, "model", None),
+            "local_provider": getattr(llm, "local_provider", None),
+            "use_mock": llm.use_mock,
+            "temperature": getattr(llm, "temperature", None),
+        }
+        st.code(json.dumps(info, ensure_ascii=False, indent=2), language="json")
     st.caption("提示：本系統僅供情緒支持與一般性建議，不提供醫療/法律專業意見。")
 
 

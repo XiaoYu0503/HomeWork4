@@ -99,6 +99,15 @@ class LLM:
                         temperature=temperature,
                     )
 
+    def engine_label(self) -> str:
+        """回傳目前使用的引擎標籤，便於 UI 診斷顯示。"""
+        if self.use_mock or self._chat is None:
+            return "Mock"
+        name = type(self._chat).__name__
+        if "Ollama" in name:
+            return "LangChain ChatOllama"
+        return "LangChain ChatOpenAI"
+
     def chat_stream(
         self,
         messages: List[Dict[str, str]],
