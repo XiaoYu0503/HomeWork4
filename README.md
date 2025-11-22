@@ -43,7 +43,7 @@ A staged project that starts with a simple MNIST fully connected classifier and 
 
 ## Step 3 Status (Interactive Canvas)
 - Install dependencies (`pip install -r requirements.txt`) which now include Gradio.
-  - Streamlit Cloud 目前使用 Python 3.13，因此本專案將 PyTorch 鎖定在 **2.5.1**（搭配 Torchvision **0.20.1**）以確保雲端能取得 CPU 版 wheel；本地端建議同樣採用此版本組合，可在 Python 3.10+ 正常安裝。
+  - Streamlit Cloud 目前使用 Python 3.13，因此本專案將 PyTorch 鎖定在 **2.6.0**（搭配 Torchvision **0.21.0**）以確保雲端能取得 CPU 版 wheel；本地端建議同樣採用此版本組合，可在 Python 3.10+ 正常安裝。
 - Launch the UI: `python app_canvas.py --checkpoint checkpoints/step2_emnist36_fc_best.pth --config configs/step2_emnist_fc.yaml`.
 - Features: sketchpad input, top-k label confidences, orientation fix for EMNIST canvases, CPU/GPU toggle, configurable host/port/share flags.
 - Use the Step 1 checkpoint/config if you want a digit-only demo; the interface automatically adapts based on the provided config metadata.
