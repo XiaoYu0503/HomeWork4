@@ -13,8 +13,8 @@ from streamlit_drawable_canvas import st_canvas
 
 from src.inference.ui import DrawingPredictor
 
-DEFAULT_CONFIG = "configs/step2_emnist_fc.yaml"
-DEFAULT_CHECKPOINT = "checkpoints/step2_emnist36_fc_best.pth"
+DEFAULT_CONFIG = "configs/step1_baseline.yaml"
+DEFAULT_CHECKPOINT = "checkpoints/step1_mnist_fc_best.pth"
 CANVAS_SIZE = 280
 
 
@@ -55,7 +55,7 @@ def predict_from_canvas(predictor: DrawingPredictor, image_data: np.ndarray) -> 
 def main() -> None:
     st.set_page_config(page_title="手寫字元辨識", layout="wide")
     st.title("手寫辨識互動畫板 · Streamlit")
-    st.caption("使用已訓練的 MNIST/EMNIST 模型，在瀏覽器中即時預測。")
+    st.caption("目前預設僅支援 0-9 MNIST 數字，請在畫板輸入單個數字。")
 
     checkpoints = find_existing_checkpoints()
     env_default = os.getenv("CHECKPOINT_PATH", "").strip()
@@ -109,7 +109,7 @@ def main() -> None:
     col_canvas, col_output = st.columns([1, 1])
 
     with col_canvas:
-        st.subheader("繪製區")
+        st.subheader("繪製區（請輸入 0-9）")
         canvas_result = st_canvas(
             fill_color="#00000000",
             stroke_width=stroke_width,

@@ -41,13 +41,12 @@ A staged project that starts with a simple MNIST fully connected classifier and 
 - Checkpoint stored at `checkpoints/step2_emnist36_fc_best.pth`.
 - Inference: `python infer.py --checkpoint checkpoints/step2_emnist36_fc_best.pth --config configs/step2_emnist_fc.yaml [--image PATH | --index 0]` (custom images are auto-rotated to EMNIST orientation).
 
-## Step 3 Status (Interactive Canvas)
 - Install dependencies (`pip install -r requirements.txt`) which now include Gradio.
   - Streamlit Cloud 目前使用 Python 3.13，因此本專案將 PyTorch 鎖定在 **2.6.0**（搭配 Torchvision **0.21.0**）以確保雲端能取得 CPU 版 wheel；本地端建議同樣採用此版本組合，可在 Python 3.10+ 正常安裝。
-- Launch the UI: `python app_canvas.py --checkpoint checkpoints/step2_emnist36_fc_best.pth --config configs/step2_emnist_fc.yaml`.
-- Features: sketchpad input, top-k label confidences, orientation fix for EMNIST canvases, CPU/GPU toggle, configurable host/port/share flags.
-- Use the Step 1 checkpoint/config if you want a digit-only demo; the interface automatically adapts based on the provided config metadata.
-- Streamlit option: `streamlit run streamlit_app.py --server.port 8501 -- --checkpoint checkpoints/step2_emnist36_fc_best.pth --config configs/step2_emnist_fc.yaml` or deploy directly on [streamlit.io](https://streamlit.io/cloud) following the steps below.
+- Launch the UI: `python app_canvas.py --checkpoint checkpoints/step1_mnist_fc_best.pth --config configs/step1_baseline.yaml`（預設僅支援 0-9）。
+- Features: sketchpad input, top-k label confidences, orientation fix for EMNIST canvases, CPU/GPU toggle, configurable host/port/share flags。
+- 若要切換回 36 類 EMNIST，可手動在側邊欄選擇 `configs/step2_emnist_fc.yaml` 與對應 checkpoint。
+- Streamlit option: `streamlit run streamlit_app.py --server.port 8501 -- --checkpoint checkpoints/step1_mnist_fc_best.pth --config configs/step1_baseline.yaml` 或部署至 streamlit.io，預設也只開啟數字模式。
 
 ### Streamlit Cloud Deployment Checklist
 1. Commit/push `streamlit_app.py`, `configs/`, and the curated checkpoint under `checkpoints/` into the repository (or add download logic referencing cloud storage).
