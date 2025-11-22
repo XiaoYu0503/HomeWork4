@@ -87,7 +87,6 @@ def main() -> None:
             )
         top_k = st.slider("顯示前幾名預測", min_value=1, max_value=10, value=5)
         stroke_width = st.slider("筆刷粗細", min_value=8, max_value=40, value=14)
-        realtime = st.toggle("自動更新預測", value=True)
 
     if not checkpoint_path:
         st.warning(
@@ -125,16 +124,14 @@ def main() -> None:
         predict_clicked = cols[0].button("預測一次", use_container_width=True)
         if cols[1].button("清除畫板", use_container_width=True):
             st.session_state["canvas_key"] = f"canvas-{uuid4()}"
-            st.experimental_rerun()
+            st.rerun()
 
     with col_output:
         st.subheader("模型信心")
         has_image = canvas_result.image_data is not None
-        should_predict = False
-        if has_image and (realtime or predict_clicked):
-            should_predict = True
+        should_predict = predict_clicked and has_image
 
-        if should_predict and has_image:
+        if should_predict:
             try:
                 predictions = predict_from_canvas(predictor, canvas_result.image_data)
             except ValueError:
