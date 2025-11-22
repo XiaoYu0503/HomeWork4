@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Dict, List, Tuple
-from uuid import uuid4
 
 import numpy as np
 import streamlit as st
@@ -16,6 +15,7 @@ from src.inference.ui import DrawingPredictor
 DEFAULT_CONFIG = "configs/step1_baseline.yaml"
 DEFAULT_CHECKPOINT = "checkpoints/step1_mnist_fc_best.pth"
 CANVAS_SIZE = 280
+TOOLBAR_ICON_DATA = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAwwAAAMMBnc7+MwAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAEFSURBVEiJ7dSxLkRBFMbx31BIlkQlHoCap5BQLAXvQafV6DyLRLYSdkWv0dBQ0NAKkUhkj2bEzc3udW9xE5E9yVfNd85/5pyZSRGhzZhqtfoE8DcAKaVOqwD0mkBSSnNNAAmBAboR8V4qtoguVrNWMI9n3Gad4SQqHlRk9dHJvmns4qWwXqUrbESEspSMfazhekyhN9zhc8z6KWarAKN0jm0sI+WkmdyuPTyV/JdFSBXgATujjl3aYQf7+CjkXhTaPRYw+DbVETZLkMM6Leo3hGxhmHNfsVBnBk0hx4XcozqARpA8/GG+bQcJ6+rFTUQ81jGmlJYi4p6fa9da/IPvegL4Lb4A0uc9nRaYXwcAAAAASUVORK5CYII="
 
 
 def load_config(path_str: str) -> Dict:
@@ -57,30 +57,46 @@ def main() -> None:
     st.title("手寫辨識互動畫板 · Streamlit")
     st.caption("目前預設僅支援 0-9 MNIST 數字，請在畫板輸入單個數字。")
     st.markdown(
-        """
+        f"""
         <style>
+        :root {{ color-scheme: light; }}
+        body, .stApp {{
+            background-color: #FFFFFF;
+            color: #111111;
+        }}
+        section[data-testid="stSidebar"] {{
+            background-color: #F5F5F5 !important;
+            color: #111111;
+        }}
+        button[title="Send to Streamlit"],
         button[title="Undo"],
         button[title="Redo"],
         button[title="Reset canvas & history"],
-        button[title="Download image"] {
+        button[title="Download image"] {{
+            width: 36px;
+            height: 36px;
             background-color: transparent !important;
-        }
-        button[title="Undo"]::before,
-        button[title="Redo"]::before,
-        button[title="Reset canvas & history"]::before,
-        button[title="Download image"]::before {
-            color: #ffffff;
-        }
+            background-image: url('{TOOLBAR_ICON_DATA}');
+            background-size: 18px 18px;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: none;
+            color: transparent;
+        }}
+        button[title="Send to Streamlit"] svg,
         button[title="Undo"] svg,
         button[title="Redo"] svg,
         button[title="Reset canvas & history"] svg,
-        button[title="Download image"] svg {
+        button[title="Download image"] svg {{
             display: none;
-        }
-        button[title="Undo"]::after { content: "↶"; color: #ffffff; font-size: 1.1rem; }
-        button[title="Redo"]::after { content: "↷"; color: #ffffff; font-size: 1.1rem; }
-        button[title="Reset canvas & history"]::after { content: "⟳"; color: #ffffff; font-size: 1.1rem; }
-        button[title="Download image"]::after { content: "⬇"; color: #ffffff; font-size: 1.1rem; }
+        }}
+        button[title="Send to Streamlit"]::after,
+        button[title="Undo"]::after,
+        button[title="Redo"]::after,
+        button[title="Reset canvas & history"]::after,
+        button[title="Download image"]::after {{
+            content: '';
+        }}
         </style>
         """,
         unsafe_allow_html=True,
