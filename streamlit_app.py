@@ -122,23 +122,19 @@ def main() -> None:
             key=st.session_state["canvas_key"],
         )
         cols = st.columns(2)
-        if cols[0].button("預測一次", use_container_width=True):
-            st.session_state["force_predict"] = True
+        predict_clicked = cols[0].button("預測一次", use_container_width=True)
         if cols[1].button("清除畫板", use_container_width=True):
             st.session_state["canvas_key"] = f"canvas-{uuid4()}"
-            st.session_state.pop("force_predict", None)
             st.experimental_rerun()
 
     with col_output:
         st.subheader("模型信心")
+        has_image = canvas_result.image_data is not None
         should_predict = False
-        if realtime and canvas_result.image_data is not None:
+        if has_image and (realtime or predict_clicked):
             should_predict = True
-        if not realtime and st.session_state.get("force_predict"):
-            should_predict = True
-            st.session_state["force_predict"] = False
 
-        if should_predict and canvas_result.image_data is not None:
+        if should_predict and has_image:
             try:
                 predictions = predict_from_canvas(predictor, canvas_result.image_data)
             except ValueError:
