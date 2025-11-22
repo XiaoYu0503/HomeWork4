@@ -56,6 +56,21 @@ def main() -> None:
     st.set_page_config(page_title="手寫字元辨識", layout="wide")
     st.title("手寫辨識互動畫板 · Streamlit")
     st.caption("目前預設僅支援 0-9 MNIST 數字，請在畫板輸入單個數字。")
+    st.markdown(
+        """
+        <style>
+        button[title="Undo"] svg,
+        button[title="Redo"] svg,
+        button[title="Reset canvas & history"] svg,
+        button[title="Download image"] svg {
+            color: #ffffff !important;
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
     checkpoints = find_existing_checkpoints()
     env_default = os.getenv("CHECKPOINT_PATH", "").strip()
@@ -124,7 +139,6 @@ def main() -> None:
         predict_clicked = cols[0].button("預測一次", use_container_width=True)
         if cols[1].button("清除畫板", use_container_width=True):
             st.session_state["canvas_key"] = f"canvas-{uuid4()}"
-            st.rerun()
 
     with col_output:
         st.subheader("模型信心")
