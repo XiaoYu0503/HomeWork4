@@ -22,5 +22,5 @@ class FullyConnectedNet(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         batch_size = x.size(0)
-        x = x.view(batch_size, -1)
+        x = x.reshape(batch_size, -1)
         return self.net(x)
