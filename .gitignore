@@ -13,7 +13,7 @@ venv/
 # Training artifacts and datasets
 artifacts/
 experiments/
-data/
+/data/
 reports/*.log
 
 # OS files

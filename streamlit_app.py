@@ -14,6 +14,7 @@ from streamlit_drawable_canvas import st_canvas
 from src.inference.ui import DrawingPredictor
 
 DEFAULT_CONFIG = "configs/step2_emnist_fc.yaml"
+DEFAULT_CHECKPOINT = "checkpoints/step2_emnist36_fc_best.pth"
 CANVAS_SIZE = 280
 
 
@@ -33,10 +34,11 @@ def load_predictor(checkpoint_path: str, config_path: str, top_k: int) -> Drawin
 
 
 def find_existing_checkpoints() -> List[str]:
-    base = Path("artifacts")
-    if not base.exists():
-        return []
-    return sorted(str(p) for p in base.glob("**/*.pth"))
+    candidates: List[str] = []
+    for directory in (Path("checkpoints"), Path("artifacts")):
+        if directory.exists():
+            candidates.extend(str(p) for p in directory.glob("**/*.pth"))
+    return sorted(set(candidates))
 
 
 def list_config_files() -> List[str]:
@@ -57,7 +59,9 @@ def main() -> None:
 
     checkpoints = find_existing_checkpoints()
     env_default = os.getenv("CHECKPOINT_PATH", "").strip()
-    default_ckpt = env_default or (checkpoints[-1] if checkpoints else "")
+    default_ckpt = env_default or (DEFAULT_CHECKPOINT if Path(DEFAULT_CHECKPOINT).exists() else "")
+    if not default_ckpt and checkpoints:
+        default_ckpt = checkpoints[-1]
 
     with st.sidebar:
         st.header("設定")
@@ -86,7 +90,9 @@ def main() -> None:
         realtime = st.toggle("自動更新預測", value=True)
 
     if not checkpoint_path:
-        st.warning("找不到 checkpoint，請在側邊欄輸入有效路徑。")
+        st.warning(
+            "找不到 checkpoint，請在側邊欄輸入有效路徑，或確認 `checkpoints/` 目錄已隨程式一併部署。"
+        )
         return
 
     try:
