@@ -59,14 +59,28 @@ def main() -> None:
     st.markdown(
         """
         <style>
+        button[title="Undo"],
+        button[title="Redo"],
+        button[title="Reset canvas & history"],
+        button[title="Download image"] {
+            background-color: transparent !important;
+        }
+        button[title="Undo"]::before,
+        button[title="Redo"]::before,
+        button[title="Reset canvas & history"]::before,
+        button[title="Download image"]::before {
+            color: #ffffff;
+        }
         button[title="Undo"] svg,
         button[title="Redo"] svg,
         button[title="Reset canvas & history"] svg,
         button[title="Download image"] svg {
-            color: #ffffff !important;
-            fill: #ffffff !important;
-            stroke: #ffffff !important;
+            display: none;
         }
+        button[title="Undo"]::after { content: "↶"; color: #ffffff; font-size: 1.1rem; }
+        button[title="Redo"]::after { content: "↷"; color: #ffffff; font-size: 1.1rem; }
+        button[title="Reset canvas & history"]::after { content: "⟳"; color: #ffffff; font-size: 1.1rem; }
+        button[title="Download image"]::after { content: "⬇"; color: #ffffff; font-size: 1.1rem; }
         </style>
         """,
         unsafe_allow_html=True,
@@ -135,10 +149,7 @@ def main() -> None:
             drawing_mode="freedraw",
             key=st.session_state["canvas_key"],
         )
-        cols = st.columns(2)
-        predict_clicked = cols[0].button("預測一次", use_container_width=True)
-        if cols[1].button("清除畫板", use_container_width=True):
-            st.session_state["canvas_key"] = f"canvas-{uuid4()}"
+        predict_clicked = st.button("預測一次", use_container_width=True)
 
     with col_output:
         st.subheader("模型信心")
