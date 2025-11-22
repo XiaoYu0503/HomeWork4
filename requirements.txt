@@ -1,0 +1,13 @@
+torch==2.3.1
+torchvision==0.18.1
+torchmetrics==1.4.0
+numpy==1.26.4
+pillow==10.4.0
+matplotlib==3.9.2
+tqdm==4.66.4
+rich==13.7.1
+tensorboard==2.16.2
+pyyaml==6.0.2
+gradio==4.44.0
+streamlit==1.38.0
+streamlit-drawable-canvas==0.9.3

@@ -1,0 +1,20 @@
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Training artifacts and datasets
+experiments/
+data/
+reports/*.log
+
+# OS files
+.DS_Store
+Thumbs.db
