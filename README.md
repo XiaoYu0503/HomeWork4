@@ -31,25 +31,26 @@ A staged project that starts with a simple MNIST fully connected classifier and 
 ## Step 1 Status
 - Training command: `python train.py --config configs/step1_baseline.yaml`
 - Best validation accuracy: **98.24%**, test accuracy: **98.49%**; see `reports/step1_baseline.md` for the full log.
-- Best checkpoint stored at `artifacts/step1/step1_mnist_fc/<timestamp>/best-epochXX.pth`.
-- Run sample inference via `python infer.py --checkpoint <path> [--image PATH | --index 0]` with `configs/step1_baseline.yaml`.
+- Best checkpoint stored at `checkpoints/step1_mnist_fc_best.pth` (copied from the latest `artifacts/` run).
+- Run sample inference via `python infer.py --checkpoint checkpoints/step1_mnist_fc_best.pth [--image PATH | --index 0]` with `configs/step1_baseline.yaml`.
 
 ## Step 2 Status (EMNIST 36-class)
 - Training command: `python train.py --config configs/step2_emnist_fc.yaml`
 - Uses EMNIST Balanced with automatic label remapping to `0-9` + `A-Z` (36 classes) via `src/data/emnist36.py`.
 - Achieved **86.96%** validation accuracy and **86.99%** test accuracy; details in `reports/step2_emnist_fc.md`.
-- Checkpoint stored at `artifacts/step2/step2_emnist36_fc/<timestamp>/best-epoch12.pth`.
-- Inference: `python infer.py --checkpoint <path> --config configs/step2_emnist_fc.yaml [--image PATH | --index 0]` (custom images are auto-rotated to EMNIST orientation).
+- Checkpoint stored at `checkpoints/step2_emnist36_fc_best.pth`.
+- Inference: `python infer.py --checkpoint checkpoints/step2_emnist36_fc_best.pth --config configs/step2_emnist_fc.yaml [--image PATH | --index 0]` (custom images are auto-rotated to EMNIST orientation).
 
 ## Step 3 Status (Interactive Canvas)
 - Install dependencies (`pip install -r requirements.txt`) which now include Gradio.
-- Launch the UI: `python app_canvas.py --checkpoint <path-to-pth> --config configs/step2_emnist_fc.yaml`.
+  - Streamlit Cloud 目前使用 Python 3.13，因此本專案將 PyTorch 鎖定在 **2.5.1**（搭配 Torchvision **0.20.1**）以確保雲端能取得 CPU 版 wheel；本地端建議同樣採用此版本組合，可在 Python 3.10+ 正常安裝。
+- Launch the UI: `python app_canvas.py --checkpoint checkpoints/step2_emnist36_fc_best.pth --config configs/step2_emnist_fc.yaml`.
 - Features: sketchpad input, top-k label confidences, orientation fix for EMNIST canvases, CPU/GPU toggle, configurable host/port/share flags.
 - Use the Step 1 checkpoint/config if you want a digit-only demo; the interface automatically adapts based on the provided config metadata.
-- Streamlit option: `streamlit run streamlit_app.py --server.port 8501 -- --checkpoint <path-to-pth> --config configs/step2_emnist_fc.yaml` or deploy directly on [streamlit.io](https://streamlit.io/cloud) following the steps below.
+- Streamlit option: `streamlit run streamlit_app.py --server.port 8501 -- --checkpoint checkpoints/step2_emnist36_fc_best.pth --config configs/step2_emnist_fc.yaml` or deploy directly on [streamlit.io](https://streamlit.io/cloud) following the steps below.
 
 ### Streamlit Cloud Deployment Checklist
-1. Commit/push `streamlit_app.py`, `configs/`, and the desired `.pth` checkpoint into the repository (or add download logic referencing cloud storage).
+1. Commit/push `streamlit_app.py`, `configs/`, and the curated checkpoint under `checkpoints/` into the repository (or add download logic referencing cloud storage).
 2. On streamlit.io, point the app to `streamlit_app.py` and set environment variables if you prefer to load paths dynamically (e.g., `CHECKPOINT_PATH`).
 3. Ensure `requirements.txt` includes `streamlit` and `streamlit-drawable-canvas` (already provided) so the cloud build installs the UI dependencies.
 4. After deployment, adjust sidebar settings (config path, checkpoint path, brush size, auto-update toggle) directly from the hosted UI.

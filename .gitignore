@@ -11,6 +11,7 @@ venv/
 .idea/
 
 # Training artifacts and datasets
+artifacts/
 experiments/
 data/
 reports/*.log
